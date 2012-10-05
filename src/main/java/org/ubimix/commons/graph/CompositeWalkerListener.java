@@ -11,9 +11,9 @@ import java.util.List;
  * Example of usage:
  * 
  * <pre>
- * CompositeWalkerListener<String> composite = new CompositeWalkerListener<String>();
- * composite(new MyFirstListener<String>()); 
- * composite(new MySecondListener<String>()); 
+ * CompositeWalkerListener&lt;String&gt; composite = new CompositeWalkerListener&lt;String&gt;();
+ * composite(new MyFirstListener&lt;String&gt;());
+ * composite(new MySecondListener&lt;String&gt;());
  * 
  * </pre>
  * 

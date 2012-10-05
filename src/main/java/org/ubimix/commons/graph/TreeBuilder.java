@@ -36,7 +36,7 @@ package org.ubimix.commons.graph;
  * // This listener will be notified when a new node is opened or closed. 
  * INodeWalkerListener listener = ... ;  
  * TreeBuilder builder = new TreeBuilder(listener);
- *
+ * 
  * // This method splits the given string by the "/" symbols and returns 
  * // the corresponding array of path segments. 
  * String[] path = getPath("a/b/c"); 
