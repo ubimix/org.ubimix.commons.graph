@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: [Statewalker] - Graph traversal library
+Bundle-SymbolicName: org.ubimix.commons.graph
+Bundle-Version: 0.2.5.SNAPSHOT
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Package: org.ubimix.commons.graph;version="0.2.5.SNAPSHOT"
