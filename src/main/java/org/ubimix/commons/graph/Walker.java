@@ -17,8 +17,6 @@
 package org.ubimix.commons.graph;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,177 +34,6 @@ import java.util.List;
 public class Walker<S> {
 
     /**
-     * This interface represents stack of graph nodes.
-     * 
-     * @author kotelnikov
-     * @param <S> the type of graph nodes
-     */
-    public interface IWalkerStack<S> {
-
-        /**
-         * Copies all nodes from this stack into the given collection.
-         * 
-         * @param collection the collection where all nodes from this stack
-         *        should be copied to
-         */
-        void copy(Collection<? super S> collection);
-
-        /**
-         * Returns an iterator over all nodes in this stack
-         * 
-         * @param direct if this flag is <code>true</code> then this method
-         *        iterates over all nodes in the stack in the same order as they
-         *        are stored in this stack; otherwise the order of nodes is
-         *        inverted
-         * @return an iterator over all nodes in the stack
-         */
-        Iterator<S> getIterator(boolean direct);
-
-        /**
-         * Returns <code>true</code> if this stsack is empty.
-         * 
-         * @return <code>true</code> if this stack is empty
-         */
-        boolean isEmpty();
-
-        /**
-         * Returns the topmost node in this stack.
-         * 
-         * @return the topmost node in this stack
-         */
-        S peek();
-
-        /**
-         * Removes the topmost node from this stack and returns it.
-         * 
-         * @return the removed topmost node from this stack.
-         */
-        S pop();
-
-        /**
-         * Adds the given node on the top of this stack.
-         * 
-         * @param node the node to push in the stack.
-         */
-        void push(S node);
-
-    }
-
-    /**
-     * An array-based implementation of the {@link IWalkerStack} interface.
-     * 
-     * @author kotelnikov
-     * @param <S> the type of the node
-     */
-    public static class WalkerStack<S> implements IWalkerStack<S> {
-
-        /**
-         * This list keeps all nodes of this stack.
-         */
-        private List<S> fStack = new ArrayList<S>();
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#copy(java.util.List)
-         */
-        public void copy(Collection<? super S> list) {
-            list.addAll(fStack);
-        }
-
-        /**
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this)
-                return true;
-            if (!(obj instanceof Walker.WalkerStack<?>))
-                return false;
-            Walker.WalkerStack<?> o = (Walker.WalkerStack<?>) obj;
-            return fStack.equals(o.fStack);
-        }
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#getIterator(boolean)
-         */
-        public Iterator<S> getIterator(boolean direct) {
-            if (direct) {
-                return fStack.iterator();
-            } else {
-                final int size = fStack.size();
-                return new Iterator<S>() {
-                    int pos = size;
-
-                    public boolean hasNext() {
-                        return pos > 0;
-                    }
-
-                    public S next() {
-                        if (pos <= 0)
-                            return null;
-                        pos--;
-                        return fStack.get(pos);
-                    }
-
-                    public void remove() {
-                    }
-
-                };
-            }
-        }
-
-        /**
-         * @see java.lang.Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            return fStack.hashCode();
-        }
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#isEmpty()
-         */
-        public boolean isEmpty() {
-            return fStack.isEmpty();
-        }
-
-        /**
-         * @see java.lang.Iterable#iterator()
-         */
-        public Iterator<S> iterator() {
-            return fStack.iterator();
-        }
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#peek()
-         */
-        public S peek() {
-            return !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
-        }
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#pop()
-         */
-        public S pop() {
-            return !fStack.isEmpty() ? fStack.remove(fStack.size() - 1) : null;
-        }
-
-        /**
-         * @see org.ubimix.commons.graph.Walker.IWalkerStack#push(java.lang.Object)
-         */
-        public void push(S state) {
-            fStack.add(state);
-        }
-
-        /**
-         * @see java.lang.Object#toString()
-         */
-        @Override
-        public String toString() {
-            return fStack.toString();
-        }
-    }
-
-    /**
      * This listener is used to notify when the walker enters in a node or goes
      * out of a node.
      */
@@ -220,7 +47,7 @@ public class Walker<S> {
     /**
      * The stack of nodes.
      */
-    private IWalkerStack<S> fStack;
+    private List<S> fStack = new ArrayList<S>();
 
     /**
      * The default constructor used to set the listener.
@@ -228,19 +55,6 @@ public class Walker<S> {
      * @param listener the listener to set
      */
     public Walker(IWalkerListener<S> listener) {
-        this(new WalkerStack<S>(), listener);
-    }
-
-    /**
-     * This constructor is used to explicitly define the stack of nodes and set
-     * a node listener.
-     * 
-     * @param stack the stack to set
-     * @param listener the listener to set
-     */
-    public Walker(IWalkerStack<S> stack, IWalkerListener<S> listener) {
-        super();
-        fStack = stack;
         fListener = listener;
     }
 
@@ -254,16 +68,6 @@ public class Walker<S> {
      */
     public boolean begin(S node) {
         return update(node);
-    }
-
-    /**
-     * Copies all nodes from the internal stack in the given collection.
-     * 
-     * @param collection the target collection where all nodes from the internal
-     *        stack should be copied to
-     */
-    public void copyStack(Collection<? super S> collection) {
-        fStack.copy(collection);
     }
 
     /**
@@ -297,10 +101,12 @@ public class Walker<S> {
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
+        if (obj == this) {
             return true;
-        if (!(obj instanceof Walker<?>))
+        }
+        if (!(obj instanceof Walker<?>)) {
             return false;
+        }
         Walker<S> process = (Walker<S>) obj;
         return fStack.equals(process.fStack);
     }
@@ -313,7 +119,7 @@ public class Walker<S> {
      * @return the current active state
      */
     public S getCurrent() {
-        return fStack.peek();
+        return !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
     }
 
     /**
@@ -340,17 +146,8 @@ public class Walker<S> {
      * 
      * @return the stack of this walker
      */
-    public IWalkerStack<S> getStack() {
+    public List<S> getStack() {
         return fStack;
-    }
-
-    /**
-     * Returns an iterator over all nodes in the stack.
-     * 
-     * @return an iterator over all nodes in the stack
-     */
-    public Iterator<S> getStackIterator(boolean direct) {
-        return fStack.getIterator(direct);
     }
 
     /**
@@ -439,18 +236,18 @@ public class Walker<S> {
         }
         IWalkerListener<S> listener = fListener;
         if (!fStack.isEmpty()) {
-            S parent = fStack.peek();
+            S parent = fStack.get(fStack.size() - 1);
             listener.onTransition(parent, fPrev, node);
         }
 
         if (node != null) {
             fPrev = null;
-            S parent = fStack.peek();
+            S parent = !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
             listener.onBegin(parent, node);
-            fStack.push(node);
+            fStack.add(node);
         } else {
-            fPrev = fStack.pop();
-            S parent = fStack.peek();
+            fPrev = fStack.remove(fStack.size() - 1);
+            S parent = !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
             listener.onEnd(parent, fPrev);
         }
         return true;

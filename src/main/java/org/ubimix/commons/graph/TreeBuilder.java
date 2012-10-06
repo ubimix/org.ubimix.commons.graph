@@ -16,6 +16,10 @@
  * ************************************************************************** */
 package org.ubimix.commons.graph;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * This class is used to recreate a tree structure from individual paths.
  * Example of usage:
@@ -57,11 +61,6 @@ package org.ubimix.commons.graph;
 public class TreeBuilder<T> {
 
     /**
-     * The path used as a source of nodes
-     */
-    private T[] fPath;
-
-    /**
      * The internal walker translating {@link Walker#begin(Object)}/
      * {@link Walker#end()} method calls into calls to the registered listeners.
      */
@@ -83,10 +82,8 @@ public class TreeBuilder<T> {
      * 
      * @throws E
      */
-    @SuppressWarnings("unchecked")
     public TreeBuilder(Walker<T> walker) {
         super();
-        fPath = toArray();
         fWalker = walker;
     }
 
@@ -96,25 +93,71 @@ public class TreeBuilder<T> {
      * 
      * @param path the next path used to re-build the tree structure
      */
-    public void align(T... path) {
-        int len = Math.min(path.length, fPath.length);
+    public void align(List<T> path) {
+        List<T> stack = fWalker.getStack();
+        int len = Math.min(path.size(), stack.size());
         int i;
         for (i = 0; i < len; i++) {
-            T a = fPath[i];
-            T b = path[i];
-            if (!equals(a, b))
+            T a = stack.get(i);
+            T b = path.get(i);
+            if (!equals(a, b)) {
                 break;
+            }
         }
-        if (i == path.length)
+        if (i == path.size()) {
             i--;
-        for (int j = fPath.length - 1; j >= i; j--) {
+        }
+        for (int j = stack.size() - 1; j >= i; j--) {
             fWalker.end();
         }
-        for (; i >= 0 && i < path.length; i++) {
-            T node = path[i];
+        for (; i >= 0 && i < path.size(); i++) {
+            T node = path.get(i);
             fWalker.begin(node);
         }
-        fPath = path;
+    }
+
+    /**
+     * The main method of this class; it re-builds the tree structure by
+     * individual paths.
+     * 
+     * @param path the next path used to re-build the tree structure
+     */
+    public void align(T... path) {
+        align(Arrays.asList(path));
+    }
+
+    /**
+     * This method is used to build tree-structures based on relative "weights"
+     * of nodes. Heavy nodes are near to the root; lighter nodes are on the
+     * leaf.
+     * 
+     * @param node the node to add to the tree
+     * @param comparator comparator used to compare nodes in the stack with new
+     *        nodes
+     */
+    public void align(T node, Comparator<T> comparator) {
+        List<T> stack = fWalker.getStack();
+        int len = stack.size();
+        int i;
+        for (i = 0; i < len; i++) {
+            T a = stack.get(i);
+            if (comparator.compare(node, a) >= 0) {
+                break;
+            }
+        }
+        for (int j = len - 1; j >= i; j--) {
+            fWalker.end();
+        }
+        fWalker.begin(node);
+    }
+
+    /**
+     * Finalizes the tree building and pops all existing elements.
+     */
+    public void close() {
+        while (!fWalker.isFinished()) {
+            fWalker.end();
+        }
     }
 
     /**
@@ -128,14 +171,8 @@ public class TreeBuilder<T> {
         return a == null || b == null ? a == b : a.equals(b);
     }
 
-    /**
-     * Returns the given parameters in the form of an array
-     * 
-     * @param param the parameters to transform into an array
-     * @return the given parameters in the form of an array
-     */
-    private T[] toArray(T... param) {
-        return param;
+    public Walker<T> getWalker() {
+        return fWalker;
     }
 
 }

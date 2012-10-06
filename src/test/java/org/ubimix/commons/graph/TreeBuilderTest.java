@@ -16,8 +16,7 @@
  * ************************************************************************** */
 package org.ubimix.commons.graph;
 
-import org.ubimix.commons.graph.PrintListener;
-import org.ubimix.commons.graph.TreeBuilder;
+import java.util.Comparator;
 
 import junit.framework.TestCase;
 
@@ -35,7 +34,7 @@ public class TreeBuilderTest extends TestCase {
         super(name);
     }
 
-    public void test() throws Exception {
+    public void testPathBasedTreeBuilding() throws Exception {
         PrintListener<String> listener = new PrintListener<String>(
             false,
             true,
@@ -46,23 +45,119 @@ public class TreeBuilderTest extends TestCase {
             }
         };
         TreeBuilder<String> b = new TreeBuilder<String>(listener);
-        test(b, "<a><b>", "a", "b");
-        test(b, "</b><b>", "a", "b");
-        test(b, "<c>", "a", "b", "c");
-        test(b, "</c><c>", "a", "b", "c");
-        test(b, "</c></b><b>", "a", "b");
-        test(b, "<c><d><e><f><g>", "a", "b", "c", "d", "e", "f", "g");
-        test(b, "</g></f></e></d></c></b></a>");
-        test(b, "<a><b><c><d><e><f><g>", "a", "b", "c", "d", "e", "f", "g");
-        test(b, "</g><g>", "a", "b", "c", "d", "e", "f", "g");
-        test(b, "</g></f><1>", "a", "b", "c", "d", "e", "1");
-        test(b, "</1></e></d></c></b></a>");
+        testPathBasedTreeBuilding(b, "<a><b>", "a", "b");
+        testPathBasedTreeBuilding(b, "</b><b>", "a", "b");
+        testPathBasedTreeBuilding(b, "<c>", "a", "b", "c");
+        testPathBasedTreeBuilding(b, "</c><c>", "a", "b", "c");
+        testPathBasedTreeBuilding(b, "</c></b><b>", "a", "b");
+        testPathBasedTreeBuilding(
+            b,
+            "<c><d><e><f><g>",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g");
+        testPathBasedTreeBuilding(b, "</g></f></e></d></c></b></a>");
+        testPathBasedTreeBuilding(
+            b,
+            "<a><b><c><d><e><f><g>",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g");
+        testPathBasedTreeBuilding(
+            b,
+            "</g><g>",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g");
+        testPathBasedTreeBuilding(
+            b,
+            "</g></f><1>",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "1");
+        testPathBasedTreeBuilding(b, "</1></e></d></c></b></a>");
     }
 
-    private void test(TreeBuilder<String> b, String control, String... path) {
+    private void testPathBasedTreeBuilding(
+        TreeBuilder<String> b,
+        String control,
+        String... path) {
         fBuf.delete(0, fBuf.length());
         b.align(path);
         assertEquals(control, fBuf.toString());
+    }
+
+    public void testWeightBasedTreeBuilding() {
+        testWeightBasedTreeBuilding("<h1></h1>", "h1");
+        testWeightBasedTreeBuilding("<h1></h1><h1></h1>", "h1", "h1");
+        testWeightBasedTreeBuilding("<h1><h2></h2></h1>", "h1", "h2");
+        testWeightBasedTreeBuilding(
+            "<h1><h2></h2><h2></h2></h1>",
+            "h1",
+            "h2",
+            "h2");
+        testWeightBasedTreeBuilding(
+            "<h1><h2></h2><h2></h2></h1>",
+            "h1",
+            "h2",
+            "h2");
+        testWeightBasedTreeBuilding(
+            "<h1><h5></h5><h2></h2></h1>",
+            "h1",
+            "h5",
+            "h2");
+        testWeightBasedTreeBuilding(
+            "<h1><h3><h5></h5></h3><h2></h2></h1>",
+            "h1",
+            "h3",
+            "h5",
+            "h2");
+        testWeightBasedTreeBuilding(
+            "<h1><h2><h5></h5></h2><h2><h4><h5></h5></h4><h3></h3></h2></h1>",
+            "h1",
+            "h2",
+            "h5",
+            "h2",
+            "h4",
+            "h5",
+            "h3");
+    }
+
+    private void testWeightBasedTreeBuilding(String control, String... strings) {
+        final StringBuilder buf = new StringBuilder();
+        Comparator<String> comparator = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return -o1.compareTo(o2);
+            }
+        };
+        TreeBuilder<String> builder = new TreeBuilder<String>(
+            new PrintListener<String>(false, true, false) {
+                @Override
+                protected void print(String string) {
+                    buf.append(string);
+                }
+            });
+        for (String string : strings) {
+            builder.align(string, comparator);
+        }
+        builder.close();
+        assertEquals(control, buf.toString());
     }
 
 }
