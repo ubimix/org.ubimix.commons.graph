@@ -30,18 +30,4 @@ public interface IWalkerListener<S> {
      */
     void onEnd(S parent, S node);
 
-    /**
-     * This method is called to notify about a transition between nodes. When
-     * this method is called the previous node is already de-activated (the
-     * method {@link #onEnd(Object, Object)} is already called for it) and the
-     * next node is not activated yet (the method
-     * {@link #onBegin(Object, Object)} is not called yet.
-     * 
-     * @param parent the parent of the previous and next nodes
-     * @param prev the initial node of the transition; this node could be
-     *        <code>null</code> when the walker enters in a node
-     * @param next the target node of the transition; it could be
-     *        <code>null</code> when the walker goes out of a node
-     */
-    void onTransition(S parent, S prev, S next);
 }

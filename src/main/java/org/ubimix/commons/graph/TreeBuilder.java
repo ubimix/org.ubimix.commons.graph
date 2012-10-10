@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.ubimix.commons.graph.Walker.WalkerStack;
+
 /**
  * This class is used to recreate a tree structure from individual paths.
  * Example of usage:
@@ -94,7 +96,7 @@ public class TreeBuilder<T> {
      * @param path the next path used to re-build the tree structure
      */
     public void align(List<T> path) {
-        List<T> stack = fWalker.getStack();
+        WalkerStack<T> stack = (WalkerStack<T>) fWalker.getStack();
         int len = Math.min(path.size(), stack.size());
         int i;
         for (i = 0; i < len; i++) {
@@ -136,7 +138,7 @@ public class TreeBuilder<T> {
      *        nodes
      */
     public void align(T node, Comparator<T> comparator) {
-        List<T> stack = fWalker.getStack();
+        WalkerStack<T> stack = (WalkerStack<T>) fWalker.getStack();
         int len = stack.size();
         int i;
         for (i = 0; i < len; i++) {

@@ -17,7 +17,6 @@
 package org.ubimix.commons.graph;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is a helper class used to implement graph traversal algorithms. Objects
@@ -34,6 +33,74 @@ import java.util.List;
 public class Walker<S> {
 
     /**
+     * This interface represents a stack of nodes used by the walker class.
+     * 
+     * @author kotelnikov
+     * @param <S>
+     */
+    public interface IWalkerStack<S> {
+
+        /**
+         * Returns <code>true</code> if this stack is empty.
+         * 
+         * @return <code>true</code> if this stack is empty
+         */
+        boolean isEmpty();
+
+        /**
+         * Returns the topmost object of the stack or <code>null</code> if this
+         * stack is empty.
+         * 
+         * @return the object at the top of this stack.
+         */
+        S peek();
+
+        /**
+         * Removes and returns the object from the top of the stack. It returns
+         * <code>null</code> if this stack is empty.
+         * 
+         * @return the removed topmost object of the stack
+         */
+        S pop();
+
+        /**
+         * Push the given object on the top of the stack.
+         * 
+         * @param object the object to add on the top of the stack
+         */
+        void push(S object);
+
+    }
+
+    /**
+     * A simple implementation of the {@link IWalkerStack} interface.
+     * 
+     * @author kotelnikov
+     * @param <S>
+     */
+    public static class WalkerStack<S> extends ArrayList<S>
+        implements
+        IWalkerStack<S> {
+        private static final long serialVersionUID = 643178065970179980L;
+
+        @Override
+        public S peek() {
+            return !isEmpty() ? get(size() - 1) : null;
+        }
+
+        @Override
+        public S pop() {
+            return !isEmpty() ? remove(size() - 1) : null;
+        }
+
+        @Override
+        public void push(S object) {
+            add(object);
+        }
+
+    }
+
+    /**
      * This listener is used to notify when the walker enters in a node or goes
      * out of a node.
      */
@@ -47,7 +114,7 @@ public class Walker<S> {
     /**
      * The stack of nodes.
      */
-    private List<S> fStack = new ArrayList<S>();
+    private IWalkerStack<S> fStack;
 
     /**
      * The default constructor used to set the listener.
@@ -55,6 +122,7 @@ public class Walker<S> {
      * @param listener the listener to set
      */
     public Walker(IWalkerListener<S> listener) {
+        fStack = newStack();
         fListener = listener;
     }
 
@@ -107,19 +175,18 @@ public class Walker<S> {
         if (!(obj instanceof Walker<?>)) {
             return false;
         }
-        Walker<S> process = (Walker<S>) obj;
-        return fStack.equals(process.fStack);
+        Walker<S> o = (Walker<S>) obj;
+        return fStack.equals(o.fStack);
     }
 
     /**
      * Returns the current active node; an active node is a node for which the
-     * {@link IFsmProcessListener#beginState(List<S>, Walker<?>)} was already
-     * called.
+     * {@link IWalkerListener#onEnd(Object, Object)} was already called.
      * 
      * @return the current active state
      */
     public S getCurrent() {
-        return !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
+        return fStack.peek();
     }
 
     /**
@@ -146,7 +213,7 @@ public class Walker<S> {
      * 
      * @return the stack of this walker
      */
-    public List<S> getStack() {
+    public IWalkerStack<S> getStack() {
         return fStack;
     }
 
@@ -200,6 +267,13 @@ public class Walker<S> {
     }
 
     /**
+     * @return a new instance of the {@link IWalkerStack} interface
+     */
+    protected IWalkerStack<S> newStack() {
+        return new WalkerStack<S>();
+    }
+
+    /**
      * Sets a new listener used to notify about graph nodes iterated by this
      * walker.
      * 
@@ -223,9 +297,7 @@ public class Walker<S> {
      * <code>null</code>) then this method adds it on the stack and calls the
      * {@link IWalkerListener#onBegin(Object, Object)} method. Otherwise the
      * topmost node on the stack is removed and the
-     * {@link IWalkerListener#onEnd(Object, Object)} method is called. This
-     * method also notifies about "transitions" between nodes using the
-     * {@link IWalkerListener#onTransition(Object, Object, Object)} method.
+     * {@link IWalkerListener#onEnd(Object, Object)} method is called.
      * 
      * @param node the next node in the graph (or <code>null</code>)
      * @return <code>true</code> if the stack update was performed successfully
@@ -235,19 +307,14 @@ public class Walker<S> {
             return false;
         }
         IWalkerListener<S> listener = fListener;
-        if (!fStack.isEmpty()) {
-            S parent = fStack.get(fStack.size() - 1);
-            listener.onTransition(parent, fPrev, node);
-        }
-
         if (node != null) {
             fPrev = null;
-            S parent = !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
+            S parent = fStack.peek();
             listener.onBegin(parent, node);
-            fStack.add(node);
+            fStack.push(node);
         } else {
-            fPrev = fStack.remove(fStack.size() - 1);
-            S parent = !fStack.isEmpty() ? fStack.get(fStack.size() - 1) : null;
+            fPrev = fStack.pop();
+            S parent = fStack.peek();
             listener.onEnd(parent, fPrev);
         }
         return true;

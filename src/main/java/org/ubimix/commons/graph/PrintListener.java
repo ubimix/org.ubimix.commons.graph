@@ -51,6 +51,7 @@ public class PrintListener<S> implements IWalkerListener<S> {
         return node != null ? node.toString() : null;
     }
 
+    @Override
     public void onBegin(S parent, S node) {
         if (fPrintNodes) {
             String name = getName(node);
@@ -59,23 +60,12 @@ public class PrintListener<S> implements IWalkerListener<S> {
         fDepth++;
     }
 
+    @Override
     public void onEnd(S parent, S node) {
         fDepth--;
         if (fPrintNodes) {
             String name = getName(node);
             println("</" + name + ">");
-        }
-    }
-
-    public void onTransition(S parent, S prev, S next) {
-        if (fPrintTransitions) {
-            println("<transition parent='"
-                + getName(parent)
-                + "' from='"
-                + getName(prev)
-                + "' to='"
-                + getName(next)
-                + "' />");
         }
     }
 

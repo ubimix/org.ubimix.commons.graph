@@ -34,6 +34,7 @@ public class WalkerListener<S> implements IWalkerListener<S> {
      * @see org.ubimix.commons.graph.IWalkerListener#onBegin(Object,
      *      java.lang.Object)
      */
+    @Override
     public void onBegin(S parent, S node) {
     }
 
@@ -41,14 +42,8 @@ public class WalkerListener<S> implements IWalkerListener<S> {
      * @see org.ubimix.commons.graph.IWalkerListener#onEnd(Object,
      *      java.lang.Object)
      */
+    @Override
     public void onEnd(S parent, S node) {
-    }
-
-    /**
-     * @see org.ubimix.commons.graph.IWalkerListener#onTransition(Object,
-     *      java.lang.Object, java.lang.Object)
-     */
-    public void onTransition(S parent, S prev, S next) {
     }
 
 }

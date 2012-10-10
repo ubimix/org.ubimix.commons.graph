@@ -16,9 +16,6 @@
  * ************************************************************************** */
 package org.ubimix.commons.graph;
 
-import org.ubimix.commons.graph.PrintListener;
-import org.ubimix.commons.graph.Walker;
-
 import junit.framework.TestCase;
 
 /**
@@ -100,6 +97,15 @@ public class WalkerTest extends TestCase {
 
     private void testStep(Walker<String> w, String node, String control) {
         fBuf.delete(0, fBuf.length());
+        if (w.getCurrent() != null) {
+            fBuf.append("<transition parent='"
+                + w.getCurrent()
+                + "' from='"
+                + w.getPrevious()
+                + "' to='"
+                + node
+                + "' />");
+        }
         w.update(node);
         assertEquals(control, fBuf.toString());
     }

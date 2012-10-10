@@ -36,21 +36,17 @@ public class CompositeWalkerListener<S> implements IWalkerListener<S> {
         fList = list;
     }
 
+    @Override
     public void onBegin(S parent, S node) {
         for (IWalkerListener<S> listener : fList) {
             listener.onBegin(parent, node);
         }
     }
 
+    @Override
     public void onEnd(S parent, S node) {
         for (IWalkerListener<S> listener : fList) {
             listener.onEnd(parent, node);
-        }
-    }
-
-    public void onTransition(S parent, S prev, S next) {
-        for (IWalkerListener<S> listener : fList) {
-            listener.onTransition(parent, prev, next);
         }
     }
 
