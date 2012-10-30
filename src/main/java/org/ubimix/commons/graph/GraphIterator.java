@@ -287,6 +287,7 @@ public abstract class GraphIterator<T> implements Iterator<T> {
     /**
      * @see java.util.Iterator#hasNext()
      */
+    @Override
     public boolean hasNext() {
         T obj = shift(true);
         return obj != null;
@@ -304,6 +305,7 @@ public abstract class GraphIterator<T> implements Iterator<T> {
     /**
      * @see java.util.Iterator#next()
      */
+    @Override
     public T next() {
         return shift(false);
     }
@@ -320,15 +322,17 @@ public abstract class GraphIterator<T> implements Iterator<T> {
         T next = loadNextNode(parent, previous);
         fStatus = 0;
         if (previous == null) {
-            if (next != null)
+            if (next != null) {
                 fStatus = IN;
-            else
+            } else {
                 fStatus = LEAF;
+            }
         } else {
-            if (next != null)
+            if (next != null) {
                 fStatus = NEXT;
-            else
+            } else {
                 fStatus = OUT;
+            }
         }
         fNextNode = next;
         return next;
@@ -337,6 +341,7 @@ public abstract class GraphIterator<T> implements Iterator<T> {
     /**
      * @see java.util.Iterator#remove()
      */
+    @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }
@@ -360,7 +365,7 @@ public abstract class GraphIterator<T> implements Iterator<T> {
      * @return the next node in the tree or <code>null</code> if there is no
      *         more nodes to return.
      */
-    private T shift(boolean b) {
+    protected T shift(boolean b) {
         if (!fDone) {
             while (fWalker.update(fNextNode)) {
                 if (fWalker.getCurrent() == null) {
